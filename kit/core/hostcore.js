@@ -379,6 +379,11 @@ export class FeatureHost {
     fr.setAttribute("scrolling", "auto");
     const h = Math.min(this._heightMax(), (m.ui && m.ui.height) || (this.kind === "mode" ? 360 : 240));
     fr.style.cssText = `width:100%;border:0;height:${h}px;background:transparent;display:block`;
+    // A sandboxed frame may still navigate itself (location, a meta refresh), and the page it loads keeps the same
+    // contentWindow and the opaque "null" origin, so it would pass the message checks as if it were the approved code.
+    // The first load is our srcdoc; any later load means the frame left it, so the feature is stopped.
+    let loads = 0;
+    fr.onload = () => { loads += 1; if (loads > 1) this.terminate("the feature tried to load another page"); };
     fr.srcdoc = html;
     this.iframe = fr; this.alive = true;
     this.win.addEventListener("message", this._onMessage);
