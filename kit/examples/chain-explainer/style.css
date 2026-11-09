@@ -1,0 +1,4 @@
+.chain { font-size: 16px; margin: 0 0 8px; }
+.chain b { color: var(--cs-accent); }
+.tier { margin: 0 0 6px; }
+.meta, .hint { margin: 0 0 4px; opacity: 0.75; font-size: 13px; }

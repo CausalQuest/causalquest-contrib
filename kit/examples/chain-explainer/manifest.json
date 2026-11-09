@@ -1,0 +1,14 @@
+{
+  "scribe": 1,
+  "api": "1",
+  "id": "chain-explainer",
+  "name": "Chain explainer",
+  "version": "1.0.0",
+  "summary": "Explains the claim you have selected: its cause, its effect and its tier, in plain words.",
+  "description": "Select a claim on the board and this panel restates it as a sentence, says which certification tier it has reached and how many linked claims point into and out of it. Tiers L2 to L4 are simulated steps in the game today, and the panel says so.",
+  "license": "CausalQuest-CLA-1",
+  "ai_assistance": ["claude-code"],
+  "permissions": ["read.claim"],
+  "entry": {"script": "main.js", "style": "style.css"},
+  "ui": {"height": 180}
+}

@@ -1,0 +1,23 @@
+name: Check examples and samples
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  cs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Run cs-check on every example and sample
+        working-directory: kit
+        run: |
+          set -e
+          for d in examples/*/ samples/*/; do
+            echo "== $d"
+            node cs-check.mjs "$d"
+          done

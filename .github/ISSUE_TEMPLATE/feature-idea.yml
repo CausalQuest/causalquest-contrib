@@ -1,0 +1,28 @@
+name: Feature or mode idea
+description: Suggest a community feature or game mode you would like to build or see
+labels: ["idea"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is it?
+      options: ["A feature beside the board (Feature API v1)", "A whole game mode (Mode API v2)", "An agent that uses CausalData"]
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes:
+      label: What would it do?
+      description: In a few sentences, what a player sees and does.
+    validations: { required: true }
+  - type: textarea
+    id: permissions
+    attributes:
+      label: Which permissions would it need?
+      description: For example read.claim, board.draw, puzzle.get, result.submit. See docs/mode-api.md.
+  - type: checkboxes
+    id: honesty
+    attributes:
+      label: Honesty rules
+      options:
+        - label: It never calls a claim "verified", and shows tiers L2 to L4 as "(simulated)".
+          required: true

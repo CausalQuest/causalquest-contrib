@@ -1,0 +1,74 @@
+{
+  "format": 1,
+  "about": "CausalScribe automatic-check rules (Feature API v1 and Mode API v2). The server (scribe_checks.py) and the kit's cs-check read this same data; scribe-kit/rules.json must stay byte-identical (tests/test_scribe_checks.py). Patterns are written for both Python re (ASCII mode) and JavaScript RegExp; flags: i = ignore case, m = ^ and $ per line.",
+  "line_max": 1000,
+  "files_max": 20,
+  "file_name": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+  "extensions": [".js", ".css", ".md", ".txt", ".json"],
+  "all": [
+    {"rule": "text.bidi", "pattern": "[\\u202a-\\u202e\\u2066-\\u2069\\u200e\\u200f]", "flags": "", "message": "bidirectional control characters can make code read differently from how it runs"},
+    {"rule": "text.invisible", "pattern": "[\\u200b-\\u200d\\u2060\\ufeff\\u00ad]", "flags": "", "message": "invisible characters are not allowed"},
+    {"rule": "text.control", "pattern": "[\\u0000-\\u0008\\u000b\\u000e-\\u001f\\u007f]", "flags": "", "message": "control characters are not allowed in text files"}
+  ],
+  "script": [
+    {"rule": "net.fetch", "pattern": "\\bfetch\\b", "flags": "", "message": "network calls are not allowed (fetch)"},
+    {"rule": "net.xhr", "pattern": "\\bXMLHttpRequest\\b", "flags": "", "message": "network calls are not allowed (XMLHttpRequest)"},
+    {"rule": "net.websocket", "pattern": "\\bWebSocket\\b", "flags": "", "message": "network calls are not allowed (WebSocket)"},
+    {"rule": "net.eventsource", "pattern": "\\bEventSource\\b", "flags": "", "message": "network calls are not allowed (EventSource)"},
+    {"rule": "net.beacon", "pattern": "\\bsendBeacon\\b", "flags": "", "message": "network calls are not allowed (navigator.sendBeacon)"},
+    {"rule": "net.importscripts", "pattern": "\\bimportScripts\\b", "flags": "", "message": "loading code is not allowed (importScripts)"},
+    {"rule": "net.webrtc", "pattern": "\\b(?:RTCPeerConnection|webkitRTCPeerConnection|RTCDataChannel)\\b", "flags": "", "message": "network calls are not allowed (WebRTC)"},
+    {"rule": "net.webtransport", "pattern": "\\bWebTransport\\b", "flags": "", "message": "network calls are not allowed (WebTransport)"},
+    {"rule": "net.worker", "pattern": "\\b(?:Worker|SharedWorker|serviceWorker)\\b", "flags": "", "message": "workers are not allowed"},
+    {"rule": "net.remote_url", "pattern": "\\b(?:https?|wss?|ftp):\\/\\/", "flags": "i", "message": "remote addresses are not allowed in scripts (put links in the README)"},
+    {"rule": "nav.location", "pattern": "\\blocation\\b", "flags": "", "message": "navigation is not allowed (location); rename any variable called location"},
+    {"rule": "nav.open", "pattern": "\\bwindow\\s*\\.\\s*open\\b", "flags": "", "message": "opening windows is not allowed"},
+    {"rule": "code.eval", "pattern": "\\beval\\b", "flags": "", "message": "eval is not allowed"},
+    {"rule": "code.function", "pattern": "\\bFunction\\b", "flags": "", "message": "the Function constructor (new Function) is not allowed"},
+    {"rule": "code.string_timer", "pattern": "\\bset(?:Timeout|Interval)\\s*\\(\\s*[\"'`]", "flags": "", "message": "setTimeout and setInterval must be given a function, not text"},
+    {"rule": "code.import", "pattern": "\\bimport\\s*\\(|^\\s*(?:import|export)\\b", "flags": "m", "message": "modules and dynamic import are not allowed: one plain script"},
+    {"rule": "code.constructor", "pattern": "\\bconstructor\\s*\\.\\s*constructor\\b|\\[\\s*[\"'`]constructor[\"'`]\\s*\\]", "flags": "", "message": "reaching the Function constructor through .constructor is not allowed"},
+    {"rule": "code.ascii_escape", "pattern": "\\\\u00[2-7][0-9A-Fa-f]|\\\\u\\{\\s*0*[2-7][0-9A-Fa-f]\\s*\\}|\\\\x[2-7][0-9A-Fa-f]", "flags": "", "message": "write letters, digits and punctuation as plain characters, not as escapes"},
+    {"rule": "code.decode", "pattern": "\\b(?:atob|unescape)\\b", "flags": "", "message": "decoding hidden text (atob, unescape) is not allowed"},
+    {"rule": "code.unusual_space", "pattern": "[\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]", "flags": "", "message": "use ordinary spaces in scripts"},
+    {"rule": "dom.cookie", "pattern": "\\.\\s*cookie\\b|\\bcookieStore\\b", "flags": "", "message": "cookies are not allowed (document.cookie)"},
+    {"rule": "store.direct", "pattern": "\\b(?:localStorage|sessionStorage|indexedDB)\\b|\\bcaches\\s*\\.", "flags": "", "message": "keep notes with CausalScribe.store, not localStorage, sessionStorage, indexedDB or caches"},
+    {"rule": "frame.parent", "pattern": "(?<![\\w$.])(?:top|parent|opener|frameElement)\\s*[.\\[]|\\bwindow\\s*\\.\\s*(?:top|parent|opener|frames|frameElement)\\b", "flags": "", "message": "talk to the game only through CausalScribe (no top., parent. or opener.)"},
+    {"rule": "frame.postmessage", "pattern": "\\bpostMessage\\b", "flags": "", "message": "talk to the game only through CausalScribe (no postMessage)"},
+    {"rule": "dyn.global_index", "pattern": "(?<![\\w$.])(?:window|self|globalThis|document)\\s*\\[", "flags": "", "message": "no computed property access on window, self, globalThis or document"},
+    {"rule": "html.script_tag", "pattern": "<\\s*\\/?\\s*script\\b", "flags": "i", "message": "scripts may not contain or build <script> tags (no <script src>)"},
+    {"rule": "html.comment_open", "pattern": "<!--", "flags": "", "message": "<!-- is not allowed in scripts (it can end the script's tag)"},
+    {"rule": "html.active_tag", "pattern": "<\\s*(?:iframe|frame|object|embed|base|meta|link|form|portal)\\b", "flags": "i", "message": "iframe, object, embed, base, meta, link and form tags are not allowed"},
+    {"rule": "html.create_element", "pattern": "\\bcreateElement(?:NS)?\\s*\\(\\s*(?:[^)]*,\\s*)?[\"'`]\\s*(?:script|iframe|frame|object|embed|base|meta|link|form|a|portal)\\s*[\"'`]", "flags": "i", "message": "creating script, iframe, object, embed, base, meta, link, form or a elements is not allowed"}
+  ],
+  "style": [
+    {"rule": "css.import", "pattern": "@import\\b", "flags": "i", "message": "@import is not allowed"},
+    {"rule": "css.url", "pattern": "\\burl\\s*\\(\\s*(?![\"']?\\s*data:)", "flags": "i", "message": "url() may only use data: (remote and relative addresses are not allowed)"},
+    {"rule": "css.remote_url", "pattern": "\\b(?:https?|wss?|ftp):\\/\\/", "flags": "i", "message": "remote addresses are not allowed in styles"},
+    {"rule": "css.tag_break", "pattern": "<\\s*\\/\\s*style|<!--", "flags": "i", "message": "</style and <!-- are not allowed (they can end the style's tag)"},
+    {"rule": "css.active", "pattern": "\\bexpression\\s*\\(|\\bbehavior\\s*:|-moz-binding", "flags": "i", "message": "CSS that runs code (expression, behavior, -moz-binding) is not allowed"},
+    {"rule": "css.escape", "pattern": "\\\\[0-9A-Fa-f]", "flags": "", "message": "write plain characters instead of CSS escapes"}
+  ],
+  "modes": {
+    "about": "Mode API v2 (manifest kind \"mode\", api \"2\"). Scoring rules are the whitelist the server implements (scribe_modes.py); each param is [min, max, default, \"int\" or \"num\"]. pack names the server-side puzzle pack (scribe_mode_packs.json) and must be of the kind the rule reads. scene and moves are the runtime limits hostcore.js applies (LIMITS); tests keep them equal.",
+    "kinds": ["feature", "mode"],
+    "board_sizes": [6, 12],
+    "height_max": 720,
+    "scene": {"bytes": 8192, "stones": 144, "labels": 64, "lines": 64, "label_chars": 40, "caption_chars": 120},
+    "moves": {"max": 200, "bytes": 8192},
+    "scoring": {
+      "chain_found": {"pack_kind": "chain", "params": {"points_per_link": [1, 100, 10, "int"], "miss_penalty": [0, 100, 5, "int"], "max_moves": [2, 60, 20, "int"]}},
+      "estimate_error": {"pack_kind": "estimate", "params": {"max_score": [10, 1000, 100, "int"], "error_weight": [0.1, 10, 1, "num"]}},
+      "route_complete": {"pack_kind": "route", "params": {"complete_points": [10, 1000, 100, "int"], "step_penalty": [0, 50, 5, "int"], "false_link_penalty": [0, 200, 25, "int"]}},
+      "count_correct": {"pack_kind": "rounds", "params": {"points_per_correct": [1, 100, 10, "int"], "rounds": [1, 10, 5, "int"]}}
+    },
+    "packs": {"daily-chains": "chain", "seed-estimates": "estimate", "route-cards": "route", "odd-one-out": "rounds"}
+  },
+  "moderation": {
+    "about": "Copies of the server's claim_intake patterns (links, e-mail addresses, phone numbers). The blocklist itself is server-only (CLAIM_BLOCKLIST).",
+    "link": "(?:https?://|www\\.)\\S+|\\b[\\w\\-]+\\.(?:com|net|org|io|ai|ru|cn|xyz|info|biz)\\b",
+    "email": "[^\\s@]+@[^\\s@]+\\.[^\\s@]+",
+    "phone": "(?:\\+?\\d[\\s\\-().]?){9,}",
+    "reserved": "\\b(?:causalquest|causalhub|causalscribe|official|staff|admin|moderator)\\b"
+  }
+}

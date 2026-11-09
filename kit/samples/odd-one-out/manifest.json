@@ -1,0 +1,20 @@
+{
+  "scribe": 1,
+  "api": "2",
+  "kind": "mode",
+  "id": "odd-one-out",
+  "name": "Odd one out",
+  "version": "1.0.0",
+  "summary": "Four effects on the board: three share one common cause. Pick the one that does not. The game's server keeps the score.",
+  "description": "A sample community mode for the Mode API v2. Each round deals four concepts from the server's odd-one-out pack and draws them on the game's board. Three of them are effects of one common cause; tap the one that is not. When the rounds are done the mode sends your picks and shows the score the server worked out. The puzzles are practice puzzles written by editors, not a verification.",
+  "license": "CausalQuest-CLA-1",
+  "ai_assistance": ["claude-code"],
+  "permissions": ["puzzle.get", "board.draw", "result.submit"],
+  "entry": {"script": "main.js", "style": "style.css"},
+  "ui": {"height": 300},
+  "mode": {
+    "scoring": {"rule": "count_correct", "params": {"points_per_correct": 10, "rounds": 5}},
+    "pack": "odd-one-out",
+    "board": {"size": 6}
+  }
+}

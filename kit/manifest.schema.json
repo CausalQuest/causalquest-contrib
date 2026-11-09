@@ -1,0 +1,366 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "causalscribe-manifest-v2",
+  "title": "CausalScribe manifest (Feature API v1 and Mode API v2)",
+  "description": "Official CausalScribe kit 1.0.0 manifest schema. The server's scribe_checks.py is the authority; tests/test_scribe_checks.py keeps this schema's fields, patterns, permission list and mode rules in step with it. The server replaces author with the submitting account's name. v1 features (api \"1\", kind \"feature\" or no kind) are unchanged; a mode needs api \"2\", kind \"mode\" and a mode block. Not expressed here (cs-check and the server enforce them): the four v2 permissions need api \"2\", board.draw, puzzle.get and result.submit need kind \"mode\", and a pack must be of the kind its scoring rule reads.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scribe",
+    "api",
+    "id",
+    "name",
+    "version",
+    "summary",
+    "permissions",
+    "ai_assistance",
+    "entry"
+  ],
+  "properties": {
+    "scribe": {
+      "const": 1
+    },
+    "api": {
+      "enum": [
+        "1",
+        "2"
+      ]
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{2,39}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 40
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})\\.(0|[1-9][0-9]{0,5})$"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 160
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2000
+    },
+    "author": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "license": {
+      "const": "CausalQuest-CLA-1"
+    },
+    "permissions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "read.claim",
+          "read.board",
+          "vote.suggest",
+          "storage.local",
+          "ui.toast",
+          "sound.play",
+          "board.draw",
+          "puzzle.get",
+          "result.submit",
+          "claim.propose"
+        ]
+      }
+    },
+    "ai_assistance": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9.-]{0,30}$"
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "script"
+      ],
+      "properties": {
+        "script": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}\\.js$"
+        },
+        "style": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}\\.css$"
+        }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "type": "integer",
+          "minimum": 80,
+          "maximum": 720
+        }
+      }
+    },
+    "kind": {
+      "enum": [
+        "feature",
+        "mode"
+      ],
+      "default": "feature"
+    },
+    "mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scoring",
+        "pack"
+      ],
+      "properties": {
+        "scoring": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "rule"
+          ],
+          "properties": {
+            "rule": {
+              "enum": [
+                "chain_found",
+                "estimate_error",
+                "route_complete",
+                "count_correct"
+              ]
+            },
+            "params": {
+              "type": "object"
+            }
+          }
+        },
+        "pack": {
+          "enum": [
+            "daily-chains",
+            "seed-estimates",
+            "route-cards",
+            "odd-one-out"
+          ]
+        },
+        "board": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "size"
+          ],
+          "properties": {
+            "size": {
+              "enum": [
+                6,
+                12
+              ]
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "scoring": {
+              "properties": {
+                "rule": {
+                  "const": "chain_found"
+                },
+                "params": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "points_per_link": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100,
+                      "default": 10
+                    },
+                    "miss_penalty": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100,
+                      "default": 5
+                    },
+                    "max_moves": {
+                      "type": "integer",
+                      "minimum": 2,
+                      "maximum": 60,
+                      "default": 20
+                    }
+                  }
+                }
+              }
+            },
+            "pack": {
+              "enum": [
+                "daily-chains"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "scoring": {
+              "properties": {
+                "rule": {
+                  "const": "estimate_error"
+                },
+                "params": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "max_score": {
+                      "type": "integer",
+                      "minimum": 10,
+                      "maximum": 1000,
+                      "default": 100
+                    },
+                    "error_weight": {
+                      "type": "number",
+                      "minimum": 0.1,
+                      "maximum": 10,
+                      "default": 1
+                    }
+                  }
+                }
+              }
+            },
+            "pack": {
+              "enum": [
+                "seed-estimates"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "scoring": {
+              "properties": {
+                "rule": {
+                  "const": "route_complete"
+                },
+                "params": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "complete_points": {
+                      "type": "integer",
+                      "minimum": 10,
+                      "maximum": 1000,
+                      "default": 100
+                    },
+                    "step_penalty": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 50,
+                      "default": 5
+                    },
+                    "false_link_penalty": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 200,
+                      "default": 25
+                    }
+                  }
+                }
+              }
+            },
+            "pack": {
+              "enum": [
+                "route-cards"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "scoring": {
+              "properties": {
+                "rule": {
+                  "const": "count_correct"
+                },
+                "params": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "points_per_correct": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100,
+                      "default": 10
+                    },
+                    "rounds": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10,
+                      "default": 5
+                    }
+                  }
+                }
+              }
+            },
+            "pack": {
+              "enum": [
+                "odd-one-out"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "const": "mode"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "mode"
+        ],
+        "properties": {
+          "api": {
+            "const": "2"
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "required": [
+            "mode"
+          ]
+        },
+        "properties": {
+          "ui": {
+            "properties": {
+              "height": {
+                "maximum": 480
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,1061 @@
+openapi: 3.1.0
+info:
+  title: CausalData Agent API
+  version: 0.4.0
+  description: 'Access to the CausalData causal knowledge graph for AI agents. Read
+    tools: search_claims, get_claim, get_neighbors, find_causal_path, check_claim,
+    search_concepts. Write tools (CH-148): propose_claim and extend_chain make a SUGGESTION
+    for a player; nothing is added to CausalData until that player confirms it in
+    CausalQuest, and the confirmed claim goes through the same normalisation, moderation
+    and daily limits as a claim the player typed, tagged ''Agent, by <player>''. Reusing
+    an existing claim is free and never counts against the limit. Keys: an operator
+    key, or a player''s own key (cqk_..., made in CausalQuest under Account > Connect
+    an agent), which acts only for that player and can be rotated, revoked or disabled
+    by moderation. Every claim carries an evidence label, a trust label and a URL.
+    Trust: unverified (L0 proposal), extracted (L1, automated extraction only), simulated
+    (L2-L4 while those steps are stand-ins), verified (only once a step is real).
+    A missing result means CausalData has no record, not that a relationship is false.
+    Usage is metered for KRF (Knowledge Royalty Framework) attribution.'
+servers:
+- url: https://api.example.invalid
+  description: Your deployment (set from PUBLIC_API_URL)
+security:
+- ApiKey: []
+paths:
+  /api/agent/v1/search:
+    get:
+      tags:
+      - agent
+      summary: Search causal claims by keywords
+      operationId: search_claims
+      parameters:
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 500
+          description: keywords, e.g. 'statin LDL cholesterol'
+          title: Q
+        description: keywords, e.g. 'statin LDL cholesterol'
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 50
+          minimum: 1
+          default: 10
+          title: Limit
+      - name: min_tier
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^L[0-4]$
+          description: lowest evidence tier to return; L0 includes unreviewed proposals
+          default: L1
+          title: Min Tier
+        description: lowest evidence tier to return; L0 includes unreviewed proposals
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/agent/v1/claims/{claim_id}:
+    get:
+      tags:
+      - agent
+      summary: Get one claim with its evidence tier
+      operationId: get_claim
+      parameters:
+      - name: claim_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Claim Id
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentClaim'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/agent/v1/claims/{claim_id}/neighbors:
+    get:
+      tags:
+      - agent
+      summary: Causes and effects around a claim
+      operationId: get_neighbors
+      parameters:
+      - name: claim_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Claim Id
+      - name: depth
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 2
+          minimum: 1
+          default: 1
+          title: Depth
+      - name: include_candidates
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Include Candidates
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NeighborsResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/agent/v1/path:
+    get:
+      tags:
+      - agent
+      summary: Shortest chain of claims linking one claim to another
+      operationId: find_causal_path
+      parameters:
+      - name: source
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Source
+      - name: target
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Target
+      - name: include_candidates
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Include Candidates
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/agent/v1/check:
+    post:
+      tags:
+      - agent
+      summary: 'Compare a statement with the graph: supported, indicative, proposed,
+        contested or unknown'
+      operationId: check_claim
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/agent/v1/concepts:
+    get:
+      tags:
+      - agent
+      summary: Find existing cause and effect concepts by text, to reuse their wording
+      operationId: search_concepts
+      parameters:
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 2
+          maxLength: 500
+          title: Q
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 50
+          minimum: 1
+          default: 10
+          title: Limit
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConceptsResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/agent/v1/propose:
+    post:
+      tags:
+      - agent
+      summary: Suggest a claim to a player. Nothing is added until the player confirms
+        it
+      operationId: propose_claim
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProposeRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/agent/v1/extend:
+    post:
+      tags:
+      - agent
+      summary: Suggest what a claim causes next. Each suggestion's cause is that claim's
+        effect
+      operationId: extend_chain
+      parameters:
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtendRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtendResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/agent/v1/proposals/{proposal_id}:
+    get:
+      tags:
+      - agent
+      summary: Status of a suggestion this key made (awaiting, confirmed with its
+        claim id, dismissed, expired)
+      operationId: get_proposal
+      parameters:
+      - name: proposal_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Proposal Id
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    AgentClaim:
+      properties:
+        id:
+          type: string
+          title: Id
+        cause:
+          type: string
+          title: Cause
+        effect:
+          type: string
+          title: Effect
+        mechanism:
+          type: string
+          title: Mechanism
+          default: ''
+        source:
+          type: string
+          title: Source
+          default: ''
+        tier:
+          type: string
+          title: Tier
+          description: L0 proposed, L1 certified by extraction, L2 consensus, L3 proof,
+            L4 simulation. L2-L4 are SIMULATED steps until the evidence label says
+            otherwise
+        evidence:
+          type: string
+          title: Evidence
+          description: plain-language meaning of the tier
+        trust:
+          type: string
+          title: Trust
+          description: '''unverified'' (L0 candidate) | ''extracted'' (L1, automated
+            extraction only) | ''simulated'' (L2-L4 while those steps are stand-ins)
+            | ''verified'' (only when an operator has made that step real)'
+        status2:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Status2
+          description: in-flight verification state, e.g. needs_revision
+        provenance:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provenance
+          description: '''Agent, by <player>'' when an agent suggested the claim and
+            the player confirmed it (CH-148); empty for claims a player typed'
+        contributors:
+          items:
+            type: string
+          type: array
+          title: Contributors
+          description: who proposed or owns the claim (for attribution)
+        url:
+          type: string
+          title: Url
+      type: object
+      required:
+      - id
+      - cause
+      - effect
+      - tier
+      - evidence
+      - trust
+      - url
+      title: AgentClaim
+    Allowance:
+      properties:
+        standing:
+          type: string
+          title: Standing
+          description: new | established | trusted | flagged (this player's agents
+            made too many claims that were refused or removed, so the new-account
+            limit applies for now)
+        cap:
+          type: integer
+          title: Cap
+          description: new claims allowed in a rolling 24 hours
+        used:
+          type: integer
+          title: Used
+        remaining:
+          type: integer
+          title: Remaining
+      type: object
+      required:
+      - standing
+      - cap
+      - used
+      - remaining
+      title: Allowance
+    CheckRequest:
+      properties:
+        text:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Text
+          description: free-text statement, e.g. 'smoking causes lung cancer'
+        cause:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Cause
+        effect:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Effect
+      type: object
+      title: CheckRequest
+    CheckResponse:
+      properties:
+        verdict:
+          type: string
+          title: Verdict
+          description: supported | indicative (simulated verification only) | proposed
+            | contested | unknown
+        confidence_note:
+          type: string
+          title: Confidence Note
+        matches:
+          items:
+            $ref: '#/components/schemas/AgentClaim'
+          type: array
+          title: Matches
+      type: object
+      required:
+      - verdict
+      - confidence_note
+      - matches
+      title: CheckResponse
+    Concept:
+      properties:
+        key:
+          type: string
+          title: Key
+        label:
+          type: string
+          title: Label
+          description: the most common wording of this concept
+        as_cause:
+          type: integer
+          title: As Cause
+        as_effect:
+          type: integer
+          title: As Effect
+      type: object
+      required:
+      - key
+      - label
+      - as_cause
+      - as_effect
+      title: Concept
+    ConceptsResponse:
+      properties:
+        query:
+          type: string
+          title: Query
+        concepts:
+          items:
+            $ref: '#/components/schemas/Concept'
+          type: array
+          title: Concepts
+      type: object
+      required:
+      - query
+      - concepts
+      title: ConceptsResponse
+    Edge:
+      properties:
+        source:
+          type: string
+          title: Source
+        target:
+          type: string
+          title: Target
+      type: object
+      required:
+      - source
+      - target
+      title: Edge
+    ExtendRequest:
+      properties:
+        player:
+          anyOf:
+          - type: string
+            maxLength: 200
+          - type: 'null'
+          title: Player
+          description: as for propose_claim
+        claim_id:
+          type: string
+          maxLength: 128
+          minLength: 1
+          title: Claim Id
+          description: the claim to grow from; its effect becomes the cause of each
+            suggestion
+        next:
+          items:
+            $ref: '#/components/schemas/NextEffect'
+          type: array
+          maxItems: 3
+          minItems: 1
+          title: Next
+          description: 1 to 3 candidate next effects
+        agent_name:
+          anyOf:
+          - type: string
+            maxLength: 60
+          - type: 'null'
+          title: Agent Name
+        request_id:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+          title: Request Id
+      type: object
+      required:
+      - claim_id
+      - next
+      title: ExtendRequest
+    ExtendResponse:
+      properties:
+        from_claim:
+          type: string
+          title: From Claim
+        proposals:
+          items:
+            $ref: '#/components/schemas/Proposal'
+          type: array
+          title: Proposals
+      type: object
+      required:
+      - from_claim
+      - proposals
+      title: ExtendResponse
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    Match:
+      properties:
+        id:
+          type: string
+          title: Id
+        cause:
+          type: string
+          title: Cause
+        effect:
+          type: string
+          title: Effect
+        tier:
+          type: string
+          title: Tier
+        same:
+          type: string
+          title: Same
+          description: '''claim'' (exact cause and effect: reuse it), or ''cause''
+            / ''effect'' / ''both'' (similar wording; shown as ''same as?'' and never
+            merged without the player''s tap)'
+      type: object
+      required:
+      - id
+      - cause
+      - effect
+      - tier
+      - same
+      title: Match
+    NeighborsResponse:
+      properties:
+        center:
+          $ref: '#/components/schemas/AgentClaim'
+        depth:
+          type: integer
+          title: Depth
+        claims:
+          items:
+            $ref: '#/components/schemas/AgentClaim'
+          type: array
+          title: Claims
+        edges:
+          items:
+            $ref: '#/components/schemas/Edge'
+          type: array
+          title: Edges
+      type: object
+      required:
+      - center
+      - depth
+      - claims
+      - edges
+      title: NeighborsResponse
+    NextEffect:
+      properties:
+        effect:
+          type: string
+          maxLength: 2000
+          title: Effect
+        relation:
+          anyOf:
+          - type: string
+            maxLength: 40
+          - type: 'null'
+          title: Relation
+        source:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Source
+        mechanism:
+          anyOf:
+          - type: string
+            maxLength: 4000
+          - type: 'null'
+          title: Mechanism
+      type: object
+      required:
+      - effect
+      title: NextEffect
+    PathResponse:
+      properties:
+        found:
+          type: boolean
+          title: Found
+        directed:
+          type: boolean
+          title: Directed
+          description: True if every step follows cause->effect direction
+        steps:
+          items:
+            $ref: '#/components/schemas/AgentClaim'
+          type: array
+          title: Steps
+        edges:
+          items:
+            $ref: '#/components/schemas/Edge'
+          type: array
+          title: Edges
+        note:
+          type: string
+          title: Note
+          default: ''
+      type: object
+      required:
+      - found
+      - directed
+      - steps
+      - edges
+      title: PathResponse
+    Proposal:
+      properties:
+        id:
+          type: string
+          title: Id
+        status:
+          type: string
+          title: Status
+          description: awaiting_confirmation | confirmed | dismissed | expired
+        label:
+          type: string
+          title: Label
+          description: how the app labels it until the player confirms
+          default: Agent suggestion
+        provenance:
+          type: string
+          title: Provenance
+          description: 'the tag the claim will carry once confirmed: ''Agent, by <player>'''
+        player:
+          type: string
+          title: Player
+        agent_name:
+          type: string
+          title: Agent Name
+        claim:
+          $ref: '#/components/schemas/TidyClaim'
+        source:
+          type: string
+          title: Source
+          default: ''
+        mechanism:
+          type: string
+          title: Mechanism
+          default: ''
+        extends:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Extends
+          description: the claim this suggestion grows from (extend_chain)
+        existing:
+          anyOf:
+          - $ref: '#/components/schemas/Match'
+          - type: 'null'
+          description: 'an existing claim with the same cause and effect. Confirming
+            reuses it: free, and it never counts against the daily limit'
+        similar:
+          items:
+            $ref: '#/components/schemas/Match'
+          type: array
+          title: Similar
+        counts_against_limit:
+          type: boolean
+          title: Counts Against Limit
+          description: false when confirming would reuse an existing claim
+        allowance:
+          anyOf:
+          - $ref: '#/components/schemas/Allowance'
+          - type: 'null'
+          description: the player's daily allowance for new claims, when this proposal
+            was made
+        claim_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Claim Id
+          description: the claim id once confirmed (new or reused)
+        expires_at:
+          type: number
+          title: Expires At
+      type: object
+      required:
+      - id
+      - status
+      - provenance
+      - player
+      - agent_name
+      - claim
+      - counts_against_limit
+      - expires_at
+      title: Proposal
+    ProposeRequest:
+      properties:
+        player:
+          anyOf:
+          - type: string
+            maxLength: 200
+          - type: 'null'
+          title: Player
+          description: the player this suggestion is for. Required for operator keys;
+            a player's own key may omit it
+        cause:
+          type: string
+          maxLength: 2000
+          title: Cause
+          description: what causes it, in plain words, e.g. 'Sea ice loss'
+        relation:
+          anyOf:
+          - type: string
+            maxLength: 40
+          - type: 'null'
+          title: Relation
+          description: causes (default) | increases | decreases | prevents. Anything
+            else is stored as 'causes'
+        effect:
+          type: string
+          maxLength: 2000
+          title: Effect
+          description: what it causes, e.g. 'Reduced albedo'
+        source:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Source
+          description: 'optional citation: a DOI, PMID or URL'
+        mechanism:
+          anyOf:
+          - type: string
+            maxLength: 4000
+          - type: 'null'
+          title: Mechanism
+          description: 'optional: how the cause produces the effect'
+        agent_name:
+          anyOf:
+          - type: string
+            maxLength: 60
+          - type: 'null'
+          title: Agent Name
+          description: shown to the player, e.g. 'Ann's PubMed agent'
+        request_id:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+          title: Request Id
+          description: 'optional idempotency key: a retry with the same id returns
+            the same proposal'
+      type: object
+      required:
+      - cause
+      - effect
+      title: ProposeRequest
+    SearchResponse:
+      properties:
+        query:
+          type: string
+          title: Query
+        count:
+          type: integer
+          title: Count
+        claims:
+          items:
+            $ref: '#/components/schemas/AgentClaim'
+          type: array
+          title: Claims
+        note:
+          type: string
+          title: Note
+          default: ''
+      type: object
+      required:
+      - query
+      - count
+      - claims
+      title: SearchResponse
+    TidyClaim:
+      properties:
+        cause:
+          type: string
+          title: Cause
+        relation:
+          type: string
+          title: Relation
+          description: causes | increases | decreases | prevents
+        effect:
+          type: string
+          title: Effect
+        display:
+          type: string
+          title: Display
+          description: 'what the player sees: ''cause (relation) effect'''
+        cause_key:
+          type: string
+          title: Cause Key
+          description: exact concept key; claims link only on an exact key match
+        effect_key:
+          type: string
+          title: Effect Key
+        notes:
+          items:
+            type: string
+          type: array
+          title: Notes
+      type: object
+      required:
+      - cause
+      - relation
+      - effect
+      - display
+      - cause_key
+      - effect_key
+      title: TidyClaim
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
