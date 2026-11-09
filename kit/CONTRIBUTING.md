@@ -6,7 +6,7 @@ this kit's `cs-check` runs the same automatic checks so you can fix problems bef
 ## Who can submit
 
 Paid players aged 18 or over, signed in, whose contributor access is not blocked. You accept the contributor agreement
-(`CausalQuest-CLA-1`) with each submission. The agreement's text is being prepared by counsel; submissions open once it is published here. Features are shown only to CausalQuest staff for now; your submission still goes into
+(`CausalQuest-CLA-1`, published in [`CLA.md`](../CLA.md)) with each submission. Features are shown only to CausalQuest staff for now; your submission still goes into
 the review queue.
 
 ## How often
