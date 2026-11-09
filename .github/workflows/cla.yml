@@ -16,6 +16,8 @@ permissions:
 
 jobs:
   cla:
+    # The check is named "CLA Assistant": the "Protect main" ruleset requires a check with exactly this name.
+    name: CLA Assistant
     runs-on: ubuntu-latest
     steps:
       - name: Check the contributor agreement
@@ -27,7 +29,7 @@ jobs:
           path-to-document: https://github.com/CausalQuest/causalquest-contrib/blob/main/CLA.md
           path-to-signatures: signatures/CausalQuest-CLA-1.json
           branch: cla-signatures
-          allowlist: dependabot[bot],github-actions[bot]
+          allowlist: jdsouza10,dependabot[bot],github-actions[bot]
           custom-pr-sign-comment: I have read and accept CausalQuest-CLA-1
           custom-notsigned-prcomment: >-
             Thank you for your pull request. Before we can review it, please read the
