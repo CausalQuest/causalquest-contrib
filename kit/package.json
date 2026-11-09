@@ -4,7 +4,7 @@
   "description": "The official CausalScribe kit: manifest schema, automatic checks (cs-check), sandbox host and SDK, and samples for CausalQuest community features and modes.",
   "private": true,
   "type": "module",
-  "license": "SEE LICENSE IN CONTRIBUTING.md",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=20"
   },

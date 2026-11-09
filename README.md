@@ -40,7 +40,7 @@ Labs for at least 30 days before it goes live. The rules are in [`CONTRIBUTING.m
 
 - **The kit is at version 1.0.0** and is the official CausalScribe kit.
 - **Community features and modes are shown only to CausalQuest staff for now.** They open to Labs players later.
-- **Submissions open once the contributor agreement is published here.** Until then, open an issue to discuss an idea.
+- **The contributor agreement is published:** [`CLA.md`](CLA.md) (CausalQuest-CLA-1). Pull requests to this repository are open; in-game submissions open when CausalScribe opens beyond staff.
 - **Rewards are play points with no cash value.** Contributions earn no KRF (Knowledge Royalty Framework) credit for code.
 
 ## Honesty rules
@@ -50,8 +50,10 @@ CausalQuest never calls a claim "verified". Tiers L2 to L4 are labelled "(simula
 
 ## Licence
 
-No licence has been chosen yet, so all rights are reserved by CausalHub AI Inc. You may read the code and use the kit to build
-and test your own submissions. Contributions will be accepted under the contributor agreement once it is published.
+- **Code** (the kit, samples and agent examples): [Apache License 2.0](LICENSE).
+- **Documentation** (`docs/` and the Markdown guides): [CC BY 4.0](LICENSE-docs).
+- **Trademarks:** the licences do not cover the CausalQuest, CausalHub, CausalData or CausalScribe names; see [`TRADEMARKS.md`](TRADEMARKS.md).
+- **Contributions** are accepted under the [CausalQuest Contributor Agreement](CLA.md). See [`NOTICE`](NOTICE).
 
 ## Security
 
