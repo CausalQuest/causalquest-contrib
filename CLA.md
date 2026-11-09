@@ -2,10 +2,14 @@
 
 **Version: CausalQuest-CLA-1 · Effective 9 November 2026**
 
-This Contributor Agreement ("Agreement") is between you and CausalHub AI Inc., a Delaware corporation, and CausalQuest, its
-wholly owned company (each of them, and both together, "CausalHub", "we", "us"). It applies to every Contribution you Submit to
-us. Please read it carefully. By ticking "I accept CausalQuest-CLA-1" when you submit in CausalQuest, or by accepting it through
-our contributor agreement check on GitHub, you agree to it.
+*Amended 9 November 2026, before anyone had accepted it, to add Aphelion Rift Institute Inc. as a party.*
+
+This Contributor Agreement ("Agreement") is between you and each of: CausalHub AI Inc., a Delaware corporation; Aphelion Rift
+Institute Inc., a Delaware corporation; and CausalQuest, a wholly owned subsidiary of CausalHub AI Inc. to be formed as a Delaware
+entity (until CausalQuest is formed, CausalHub AI Inc. holds CausalQuest's rights under this Agreement). Each of them, and all of
+them together, are "we" and "us". Aphelion Rift Institute Inc. and CausalQuest jointly own the CausalQuest code. It applies to
+every Contribution you Submit to us. Please read it carefully. By ticking "I accept CausalQuest-CLA-1" when you submit in
+CausalQuest, or by accepting it through our contributor agreement check on GitHub, you agree to it.
 
 ## 1. Definitions
 
