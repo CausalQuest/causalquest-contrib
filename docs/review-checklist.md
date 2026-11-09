@@ -7,7 +7,9 @@ What CausalQuest's reviewers check before a community feature or mode moves forw
 1. Read every line of the script and style (for a new version, the diff, then the whole file). The checks are a first pass.
 2. Permissions: each one asked for is needed and used; `vote.suggest` only suggests, the player confirms every vote.
 3. No attempt to reach the network, the page, the account or storage indirectly: string building, escapes, timers, odd
-   aliases of `window`, data hidden in notes files.
+   aliases of `window` (for example `document.defaultView`), global names built from pieces of strings
+   (`["loc", "ation"].join("")`), data hidden in notes files. Trying to load another page in the frame is refused at
+   once: the game stops a feature whose frame loads a second page.
 4. The name, summary and description say what it does, are polite, and do not mislead. Nothing says a claim is "verified".
 5. Where a feature shows tiers, L2 to L4 are marked as simulated.
 6. AI assistance is disclosed as declared (`ai_assistance`).
